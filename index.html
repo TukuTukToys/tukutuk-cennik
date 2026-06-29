@@ -7,7 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
-<link rel="manifest" href="manifest.json">
+
+<!-- Bezpośredni manifest i ikony aplikacji rozpoznawane przez Chrome (Android) oraz Safari (iOS) -->
+<link rel="apple-touch-icon" sizes="180x180" href="https://cdn-icons-png.flaticon.com/512/4043/4043240.png">
+<link rel="manifest" href='data:application/manifest+json,{"short_name":"TukuTuk","name":"TukuTuk - Cennik Regałów","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/4043/4043240.png","type":"image/png","sizes":"192x192","purpose":"any"},{"src":"https://cdn-icons-png.flaticon.com/512/4043/4043240.png","type":"image/png","sizes":"512x512","purpose":"any"}],"start_url":".","background_color":"%23FAF6EF","theme_color":"%232E5A3D","display":"standalone","orientation":"portrait"}'>
+
 <style>
   :root{
     --bg:#FAF6EF; --surface:#FFFFFF; --sand:#F2E9DA; --sand-2:#EFE4D1;
@@ -153,6 +157,7 @@
     <div class="brandtext"><h1>TukuTuk</h1><p>Cennik regałów (Cloud)</p></div>
   </div>
 
+  <!-- ===== KATALOG ===== -->
   <section id="view-catalog" class="view active">
     <p class="lead">Wybierz model — zobaczysz szerokości i gotowe ceny: <b style="color:var(--oak-deep)">Europa (€)</b> oraz <b style="color:var(--us-blue)">USA z cłem ($)</b>.</p>
     <button class="btn btn-primary addbtn" id="btn-new">
@@ -162,6 +167,7 @@
     <div class="cat" id="cat"></div>
   </section>
 
+  <!-- ===== USTAWIENIA ===== -->
   <section id="view-settings" class="view">
     <div class="panel">
       <h2 class="panel-h"><span class="dot"></span>Kursy walut</h2>
@@ -192,6 +198,7 @@
   </nav>
 </div>
 
+<!-- ===== MODEL EDITOR ===== -->
 <div class="overlay" id="editor">
   <div class="ed-top">
     <button class="iconbtn" id="ed-close" aria-label="Zamknij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -245,6 +252,7 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- INTEGRACJA CHMURY GOOGLE FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -590,7 +598,7 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 
 bindRate('rate-eur','eurRate');bindRate('rate-usd','usdRate');bindRate('rate-labor','laborRate');
 
-/* ===== REJESTRACJA MANIFESTU PWA ===== */
+/* ===== REJESTRACJA SERVICE WORKERA PWA ===== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGUgPT4gZSk7')
