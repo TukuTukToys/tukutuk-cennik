@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TukuTuk · Cennik regałów</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --bg:#FAF6EF; --surface:#FFFFFF; --sand:#F2E9DA; --sand-2:#EFE4D1;
+    --ink:#2A2622; --ink-soft:#6F665B; --ink-faint:#9A9183;
+    --green:#2E5A3D; --green-deep:#214530; --green-soft:#E2EBE2;
+    --oak:#B5812F; --oak-deep:#8F6320; --oak-soft:#F0E2C5;
+    --clay:#AC4528; --clay-soft:#F4E0D8; --us-blue:#2B4C7E; --us-soft:#E1E8F2;
+    --line:#E7DCC9; --line-strong:#D8CBB2;
+    --shadow:0 1px 2px rgba(42,38,34,.05), 0 8px 24px rgba(42,38,34,.06);
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --disp:"Fraunces",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.45;font-variant-numeric:tabular-nums}
+  .app{max-width:540px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);box-shadow:0 0 60px rgba(42,38,34,.06)}
+  .topbar{position:sticky;top:0;z-index:30;background:var(--green);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 18px 14px;display:flex;align-items:center;gap:12px}
+  .brandmark{width:34px;height:34px;border-radius:9px;background:var(--oak);display:grid;place-items:center;flex:0 0 auto;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
+  .brandmark svg{width:20px;height:20px}
+  .brandtext h1{font-family:var(--disp);font-weight:600;font-size:20px;margin:0;letter-spacing:.2px;line-height:1.05}
+  .brandtext p{margin:1px 0 0;font-size:11.5px;color:#CFE0D2;letter-spacing:.3px;text-transform:uppercase}
+  .view{display:none;padding:16px 16px 96px}
+  .view.active{display:block}
+  .btn{font-family:var(--sans);font-size:15px;font-weight:600;border:none;border-radius:13px;padding:14px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;transition:transform .08s ease, filter .15s ease;-webkit-tap-highlight-color:transparent}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--green);color:#fff}
+  .btn-ghost{background:transparent;color:var(--green-deep);border:1.5px solid var(--line-strong)}
+  .btn-danger{background:transparent;color:var(--clay);border:1.5px solid var(--clay-soft)}
+  .btn svg{width:18px;height:18px}
+  .addbtn{margin-bottom:16px}
+  .lead{font-size:13px;color:var(--ink-soft);margin:0 0 14px;padding:0 2px}
+  /* ---- catalog cards ---- */
+  .cat{display:flex;flex-direction:column;gap:12px}
+  .cat-card{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--oak);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;animation:rise .3s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .cat-head{display:flex;align-items:center;gap:13px;padding:13px;cursor:pointer}
+  .cat-thumb{width:60px;height:60px;border-radius:11px;flex:0 0 auto;object-fit:cover;background:var(--sand);border:1px solid var(--line)}
+  .cat-thumb.ph{display:grid;place-items:center;color:var(--ink-faint)}
+  .cat-thumb.ph svg{width:24px;height:24px}
+  .cat-meta{flex:1;min-width:0}
+  .cat-meta .nm{font-family:var(--disp);font-weight:600;font-size:17px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+  .cat-meta .ct{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  .cat-actions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+  .mini{background:var(--sand);border:none;color:var(--green-deep);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;cursor:pointer}
+  .mini svg{width:18px;height:18px}
+  .chev{color:var(--ink-faint);transition:transform .2s ease;display:grid;place-items:center;width:30px;height:36px}
+  .chev svg{width:20px;height:20px}
+  .cat-card.open .chev{transform:rotate(180deg)}
+  /* price table */
+  .ptab{display:none;border-top:1px solid var(--line);background:var(--sand-2)}
+  .cat-card.open .ptab{display:block}
+  .ptab-h{display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:8px;padding:9px 14px 5px;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:700}
+  .ptab-h .eu{color:var(--oak-deep)}
+  .ptab-h .us{color:var(--us-blue)}
+  .prow{display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:8px;padding:10px 14px;align-items:center;border-top:1px solid var(--line)}
+  .prow .w{font-weight:700;font-size:15px;color:var(--ink)}
+  .prow .w small{font-weight:500;color:var(--ink-faint);font-size:12px}
+  .prow .eu{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--oak-deep);line-height:1}
+  .prow .eu .z{display:block;font-family:var(--sans);font-size:11px;color:var(--ink-faint);font-weight:600;margin-top:2px}
+  .prow .us{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--us-blue);line-height:1}
+  .prow .us .z{display:block;font-family:var(--sans);font-size:11px;color:var(--ink-faint);font-weight:600;margin-top:2px}
+  .ptab-empty{padding:14px;font-size:13px;color:var(--ink-soft);text-align:center}
+  /* empty */
+  .empty{text-align:center;padding:48px 24px;color:var(--ink-soft)}
+  .empty .ic{width:54px;height:54px;border-radius:16px;background:var(--sand);display:grid;place-items:center;margin:0 auto 14px;color:var(--oak-deep)}
+  .empty h3{font-family:var(--disp);font-weight:600;color:var(--ink);margin:0 0 6px;font-size:19px}
+  .empty p{margin:0 0 18px;font-size:14px;max-width:300px;margin-inline:auto}
+  /* nav */
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:saturate(1.4) blur(10px);border-top:1px solid var(--line);display:flex;max-width:540px;margin:0 auto;padding:6px 8px calc(env(safe-area-inset-bottom) + 6px)}
+  .nav button{flex:1;background:none;border:none;cursor:pointer;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-faint);font-family:var(--sans);font-size:11px;font-weight:600}
+  .nav button.active{color:var(--green)}
+  .nav button svg{width:23px;height:23px}
+  /* panels & fields */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:var(--shadow);margin-bottom:14px}
+  .panel-h{font-family:var(--disp);font-weight:600;font-size:16px;color:var(--green-deep);margin:0 0 3px;display:flex;align-items:center;gap:8px}
+  .panel-sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 12px}
+  .panel-h .dot{width:8px;height:8px;border-radius:50%;background:var(--oak);flex:0 0 auto}
+  .field{margin-bottom:12px}.field:last-child{margin-bottom:0}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px}
+  .hint{font-size:11.5px;color:var(--ink-faint);font-weight:500;margin-top:4px}
+  input,select{width:100%;font-family:var(--sans);font-size:16px;color:var(--ink);background:var(--sand);border:1.5px solid transparent;border-radius:11px;padding:12px 13px;appearance:none;-webkit-appearance:none;transition:border-color .15s ease, background .15s ease}
+  input:focus,select:focus{outline:none;border-color:var(--green);background:#fff}
+  input:disabled{color:var(--ink-soft);background:var(--sand-2)}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236F665B' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:38px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .ipx{position:relative}
+  .ipx .suf{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--ink-faint);font-weight:600;pointer-events:none}
+  .ipx input{padding-right:34px}
+  .mrow{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+  .mrow:last-child{border-bottom:none}
+  .mname{font-size:14px;font-weight:600;color:var(--ink)}.munit{font-size:11.5px;color:var(--ink-faint);font-weight:500}
+  .qty-in input{text-align:right;padding:10px 11px;font-size:15px}
+  /* editor overlay */
+  .overlay{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;flex-direction:column;max-width:540px;margin:0 auto}
+  .overlay.open{display:flex;animation:slideup .3s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
+  .ed-top{position:sticky;top:0;background:var(--green);color:#fff;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;z-index:5}
+  .ed-top .ttl{font-family:var(--disp);font-weight:600;font-size:18px;flex:1}
+  .iconbtn{background:rgba(255,255,255,.16);border:none;color:#fff;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+  .iconbtn svg{width:19px;height:19px}
+  .ed-body{flex:1;overflow-y:auto;padding:14px 16px 20px;-webkit-overflow-scrolling:touch}
+  .photo-wrap{position:relative;border-radius:18px;overflow:hidden;margin-bottom:16px;background:var(--sand-2);border:1.5px dashed var(--line-strong);aspect-ratio:16/9;display:grid;place-items:center;cursor:pointer}
+  .photo-wrap.has{border-style:solid;border-color:var(--line)}
+  .photo-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .photo-cta{text-align:center;color:var(--oak-deep);z-index:1;padding:14px}
+  .photo-cta svg{width:30px;height:30px;margin-bottom:6px}
+  .photo-cta .t{font-weight:600;font-size:14px;color:var(--ink)}
+  .photo-cta .s{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  .photo-edit{position:absolute;right:10px;bottom:10px;z-index:2;background:rgba(33,69,48,.92);color:#fff;border:none;border-radius:11px;padding:8px 12px;font-size:12.5px;font-weight:600;display:flex;gap:6px;align-items:center;cursor:pointer;backdrop-filter:blur(4px)}
+  .photo-edit svg{width:15px;height:15px}
+  /* width entry card */
+  .wcard{border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;background:var(--surface)}
+  .wcard-top{display:grid;grid-template-columns:88px 1fr 38px;gap:9px;align-items:end;padding:12px 12px 10px}
+  .wcard-top label{margin-bottom:4px}
+  .wprev{padding:9px 12px 11px;background:var(--sand-2);border-top:1px solid var(--line);display:flex;gap:16px;font-size:13px;align-items:baseline;flex-wrap:wrap}
+  .wprev .eu{color:var(--oak-deep);font-weight:700}
+  .wprev .us{color:var(--us-blue);font-weight:700}
+  .wprev .ck{color:var(--ink-faint);font-weight:600;font-size:11.5px;margin-left:auto}
+  .wprev b{font-family:var(--disp);font-size:15px}
+  .fxbtn{height:46px;border-radius:11px;border:1.5px solid var(--line-strong);background:var(--sand);color:var(--ink-soft);font-weight:700;font-size:13px;cursor:pointer}
+  .fxbtn.on{background:var(--green);border-color:var(--green);color:#fff}
+  .recipe{display:none;padding:8px 12px 12px;border-top:1px dashed var(--line)}
+  .recipe.show{display:block}
+  .recipe .rt{font-size:12px;font-weight:700;color:var(--ink-soft);margin:4px 0 8px}
+  .delw{background:var(--clay-soft);border:none;color:var(--clay);height:46px;border-radius:11px;cursor:pointer;display:grid;place-items:center}
+  .delw svg{width:18px;height:18px}
+  .note-usa{font-size:11.5px;color:var(--clay);background:var(--clay-soft);border-radius:10px;padding:9px 11px;margin-top:4px;line-height:1.4}
+  .savebar{position:sticky;bottom:0;background:rgba(250,246,239,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);display:flex;gap:10px}
+  .savebar .btn{flex:1}.savebar .btn.del{flex:0 0 52px;padding:14px 0}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);z-index:90;background:var(--ink);color:#fff;padding:11px 18px;border-radius:30px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;box-shadow:0 20px 50px rgba(42,38,34,.18)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .save-note{font-size:11px;color:var(--ink-faint);text-align:center;padding:10px 16px 2px}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brandmark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="4" x2="9" y2="10"/><line x1="15" y1="15" x2="15" y2="20"/></svg>
+    </div>
+    <div class="brandtext"><h1>TukuTuk</h1><p>Cennik regałów (Cloud)</p></div>
+  </div>
+
+  <section id="view-catalog" class="view active">
+    <p class="lead">Wybierz model — zobaczysz szerokości i gotowe ceny: <b style="color:var(--oak-deep)">Europa (€)</b> oraz <b style="color:var(--us-blue)">USA z cłem ($)</b>.</p>
+    <button class="btn btn-primary addbtn" id="btn-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nowy model
+    </button>
+    <div class="cat" id="cat"></div>
+  </section>
+
+  <section id="view-settings" class="view">
+    <div class="panel">
+      <h2 class="panel-h"><span class="dot"></span>Kursy walut</h2>
+      <p class="panel-sub">Wpływają na ceny € i $ w całym katalogu.</p>
+      <div class="row2">
+        <div class="field"><label>Kurs euro</label><div class="ipx"><input id="rate-eur" type="number" inputmode="decimal" step="0.01"><span class="suf">zł/€</span></div><div class="hint">ile zł za 1 €</div></div>
+        <div class="field"><label>Kurs dolara</label><div class="ipx"><input id="rate-usd" type="number" inputmode="decimal" step="0.01"><span class="suf">zł/$</span></div><div class="hint">ile zł za 1 $</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-h"><span class="dot"></span>Ceny materiałów</h2>
+      <p class="panel-sub">Używane, gdy liczysz koszt szerokości „z materiałów”. Zmiana ceny przelicza takie regały.</p>
+      <div id="cennik-list"></div>
+      <div class="field" style="margin-top:12px"><label>Stawka robocizny</label><div class="ipx"><input id="rate-labor" type="number" inputmode="decimal" step="0.5"><span class="suf">zł/h</span></div></div>
+    </div>
+    <p class="save-note">Wszystko zapisuje się automatycznie w chmurze.</p>
+  </section>
+
+  <nav class="nav">
+    <button id="nav-catalog" class="active" onclick="switchView('catalog')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+      Katalog
+    </button>
+    <button id="nav-settings" onclick="switchView('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Ustawienia
+    </button>
+  </nav>
+</div>
+
+<div class="overlay" id="editor">
+  <div class="ed-top">
+    <button class="iconbtn" id="ed-close" aria-label="Zamknij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="ttl" id="ed-title">Nowy model</div>
+  </div>
+  <div class="ed-body">
+    <div class="photo-wrap" id="photo-wrap">
+      <div class="photo-cta" id="photo-cta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div class="t">Dodaj zdjęcie modelu</div><div class="s">Pokaże się w katalogu</div>
+      </div>
+      <img id="photo-img" alt="" style="display:none">
+      <button class="photo-edit" id="photo-change" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Zmień</button>
+      <input type="file" id="photo-input" accept="image/*" style="display:none">
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-h"><span class="dot"></span>Model</h2>
+      <div class="field"><label>Nazwa modelu</label><input id="f-name" type="text" placeholder="np. Regał Montessori"></div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-h"><span class="dot"></span>Ustawienia sprzedaży</h2>
+      <p class="panel-sub">Wspólne dla wszystkich szerokości tego modelu. Wpisujesz raz.</p>
+      <div class="field"><label>Zysk, który chcesz zarobić</label><div class="ipx"><input id="f-zysk" type="number" inputmode="decimal" value="0"><span class="suf">zł</span></div></div>
+      <div class="row2">
+        <div class="field"><label>Wysyłka</label><div class="ipx"><input id="f-wys" type="number" inputmode="decimal" value="0"><span class="suf">zł</span></div></div>
+        <div class="field"><label>Reklama (na 1 szt.)</label><div class="ipx"><input id="f-rek" type="number" inputmode="decimal" value="0"><span class="suf">zł</span></div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Prowizja platformy</label><div class="ipx"><input id="f-prow" type="number" inputmode="decimal" step="0.1" value="0"><span class="suf">%</span></div><div class="hint">Etsy ~6,5 · Amazon ~15</div></div>
+        <div class="field"><label>Opłata stała</label><div class="ipx"><input id="f-fee" type="number" inputmode="decimal" value="0"><span class="suf">zł</span></div></div>
+      </div>
+      <div class="field"><label>Stawka cła do USA</label><div class="ipx"><input id="f-duty" type="number" inputmode="decimal" step="0.5" value="0"><span class="suf">%</span></div></div>
+      <div class="note-usa">De minimis (800 USD) zniesiono 29.08.2025 — cło należne też od małych paczek. Stawkę sprawdź wg kodu HTS (meble drewniane zwykle 9403) u przewoźnika lub brokera.</div>
+    </div>
+
+    <div class="panel">
+      <h2 class="panel-h"><span class="dot"></span>Szerokości i koszt</h2>
+      <p class="panel-sub">Dla każdej szerokości podaj koszt wytworzenia (zł) albo policz go z materiałów (fx). Ceny € i $ wyliczą się same.</p>
+      <div id="widths"></div>
+      <button class="btn btn-ghost" id="btn-add-width" style="margin-top:6px">+ Dodaj szerokość</button>
+    </div>
+  </div>
+
+  <div class="savebar">
+    <button class="btn btn-danger del" id="ed-delete" title="Usuń model" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+    <button class="btn btn-primary" id="ed-save">Zapisz model</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Twoje dokładne i unikalne klucze wyciągnięte z Firebase Console
+const firebaseConfig = {
+  apiKey: "AIzaSyCqbeju9I2NSScP0727zlHc5GqGmG17KHA",
+  authDomain: "tukutuk-cennik.firebaseapp.com",
+  projectId: "tukutuk-cennik",
+  storageBucket: "tukutuk-cennik.firebasestorage.app",
+  messagingSenderId: "541723097140",
+  appId: "1:541723097140:web:e3800a5c4d259ca57bf261",
+  measurementId: "G-R4ZCF82DCF"
+};
+
+// Inicjalizacja bazy
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ===== SYSTEM OPERACJI NA BAZIE (STORE) ===== */
+const Store = {
+  async getSettings() {
+    const docRef = doc(db, "config", "settings");
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data().value : null;
+  },
+  async setSettings(val) {
+    await setDoc(doc(db, "config", "settings"), { value: val });
+  },
+  async setModel(id, modelData) {
+    await setDoc(doc(db, "models", id), modelData);
+  },
+  async deleteModel(id) {
+    await deleteDoc(doc(db, "models", id));
+  },
+  async getAllModels() {
+    const querySnapshot = await getDocs(collection(db, "models"));
+    const models = [];
+    querySnapshot.forEach((doc) => {
+      models.push(doc.data());
+    });
+    return models;
+  }
+};
+
+/* ===== DOMYŚLNE MATERIAŁY ===== */
+const DEFAULT_MATERIALS=[
+  {name:'Płyta / sklejka',unit:'m²',price:80},{name:'Drewno lite / listwy',unit:'mb',price:25},
+  {name:'Plecy (HDF)',unit:'m²',price:30},{name:'Wkręty, okucia',unit:'szt',price:0.5},
+  {name:'Klej',unit:'szt',price:15},{name:'Olej / lakier',unit:'szt',price:60},
+  {name:'Papier ścierny',unit:'szt',price:3},{name:'Inne',unit:'szt',price:0}
+];
+
+/* ===== STAN APLIKACJI ===== */
+let settings={ eurRate:4.30, usdRate:4.00, laborRate:40, materials:DEFAULT_MATERIALS.map(m=>({...m})) };
+let modelsArr=[];      
+let editId=null, draft=null, editPhoto=null;
+
+/* ===== FORMATOWANIE WALUT ===== */
+const fPLN=n=>(isFinite(n)?n:0).toLocaleString('pl-PL',{style:'currency',currency:'PLN',maximumFractionDigits:2});
+const fEUR=n=>(isFinite(n)?n:0).toLocaleString('pl-PL',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const fEUR2=n=>(isFinite(n)?n:0).toLocaleString('pl-PL',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+const fUSD=n=>'$'+(isFinite(n)?n:0).toLocaleString('en-US',{maximumFractionDigits:0});
+const fUSD2=n=>'$'+(isFinite(n)?n:0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0;};
+
+/* ===== MATEMATYKA CENNIKA ===== */
+function widthCost(w){
+  if(w.mode==='recipe'){
+    let c=0; const M=settings.materials;
+    for(let i=0;i<M.length;i++) c+=num((w.qtys&&w.qtys[i])||0)*num(M[i].price);
+    return c+num(w.laborH)*num(settings.laborRate)+num(w.pak)+num(w.inne);
+  }
+  return num(w.cost);
+}
+window.widthCost = widthCost;
+
+function priceOf(model,w){
+  const cost=widthCost(w); const prow=num(model.prow)/100;
+  if(prow>=1) return {cost,ok:false};
+  const price=(cost+num(model.zysk)+num(model.wys)+num(model.rek)+num(model.fee))/(1-prow);
+  const eur=price/num(settings.eurRate);
+  const usd=price/num(settings.usdRate);
+  const duty=usd*(num(model.duty)/100);
+  const usWithDuty=usd+duty;
+  return {cost,price,eur,usd,duty,usWithDuty,ok:true};
+}
+
+/* ===== INICJALIZACJA Z CHMURY ===== */
+async function init(){
+  try {
+    const cloudSettings = await Store.getSettings();
+    if(cloudSettings){
+      settings = cloudSettings;
+    } else {
+      await Store.setSettings(settings);
+    }
+    
+    modelsArr = await Store.getAllModels();
+    
+    if(modelsArr.length===0){
+      await seed();
+      modelsArr = await Store.getAllModels();
+    }
+    
+    renderCennik(); 
+    renderCatalog();
+    
+    document.getElementById('rate-eur').value=settings.eurRate;
+    document.getElementById('rate-usd').value=settings.usdRate;
+    document.getElementById('rate-labor').value=settings.laborRate;
+  } catch (e) {
+    console.error(e);
+    toast("Błąd synchronizacji! Sprawdź połączenie.");
+  }
+}
+
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+
+async function seed(){
+  const mk=(width)=>({id:genId(),width,mode:'manual',cost:Math.round(310.5*width/60*100)/100,qtys:settings.materials.map(()=>0),laborH:0,pak:0,inne:0});
+  const m1={id:genId(),name:'Regał Montessori',photo:null,zysk:150,wys:25,rek:20,prow:6.5,fee:0.8,duty:0,widths:[mk(40),mk(50),mk(60),mk(70)]};
+  m1.widths[2]={id:genId(),width:60,mode:'recipe',cost:0,qtys:[0.8,2,0.5,40,0.3,0.25,4,0],laborH:3,pak:10,inne:0};
+  await Store.setModel(m1.id, m1);
+}
+
+/* ===== GENEROWANIE WIDOKÓW (DOM) ===== */
+function renderCatalog(){
+  const wrap=document.getElementById('cat');
+  if(modelsArr.length===0){
+    wrap.innerHTML=`<div class="empty"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="15" x2="21" y2="15"/></svg></div><h3>Brak modeli</h3><p>Dodaj pierwszy model regału.</p></div>`;
+    return;
+  }
+  wrap.innerHTML=modelsArr.map(m=>{
+    const thumb=m.photo?`<img class="cat-thumb" src="${m.photo}" alt="">`:`<div class="cat-thumb ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="15" x2="21" y2="15"/></svg></div>`;
+    const ws=(m.widths||[]).slice().sort((a,b)=>a.width-b.width);
+    const rows = ws.length? ws.map(w=>{
+      const r=priceOf(m,w);
+      return `<div class="prow">
+        <div class="w">${w.width} <small>cm</small></div>
+        <div class="eu">${r.ok?fEUR(r.eur):'—'}<span class="z">${r.ok?fPLN(r.price):''}</span></div>
+        <div class="us">${r.ok?fUSD(r.usWithDuty):'—'}<span class="z">${r.ok?('cło '+(m.duty||0)+'%'):''}</span></div>
+      </div>`;
+    }).join('') : `<div class="ptab-empty">Brak szerokości — dodaj je w edycji.</div>`;
+    return `<div class="cat-card" id="card-${m.id}">
+      <div class="cat-head" id="head-${m.id}">
+        ${thumb}
+        <div class="cat-meta"><div class="nm">${esc(m.name||'Model')}</div><div class="ct">${ws.length} ${ws.length===1?'szerokość':'szerokości'}</div></div>
+        <div class="cat-actions">
+          <button class="mini" id="edit-btn-${m.id}" aria-label="Edytuj"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+          <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+        </div>
+      </div>
+      <div class="ptab">
+        <div class="ptab-h"><div>Szerokość</div><div class="eu">Europa</div><div class="us">USA z cłem</div></div>
+        ${rows}
+      </div>
+    </div>`;
+  }).join('');
+
+  modelsArr.forEach(m => {
+    document.getElementById(`head-${m.id}`).addEventListener('click', () => toggleCard(m.id));
+    document.getElementById(`edit-btn-${m.id}`).addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEditor(m.id);
+    });
+  });
+}
+
+function toggleCard(id){ document.getElementById('card-'+id).classList.toggle('open'); }
+
+function renderCennik(){
+  const wrap=document.getElementById('cennik-list');
+  wrap.innerHTML=settings.materials.map((m,i)=>`<div class="mrow"><div><div class="mname">${esc(m.name)}</div><div class="munit">za 1 ${esc(m.unit)}</div></div><div class="qty-in ipx"><input type="number" inputmode="decimal" step="0.5" value="${m.price}" data-mi="${i}" class="cennik-price"><span class="suf">zł</span></div></div>`).join('');
+  wrap.querySelectorAll('.cennik-price').forEach(inp=>inp.addEventListener('input',async()=>{
+    settings.materials[+inp.dataset.mi].price=num(inp.value); await saveSettings(); renderCatalog();
+    if(document.getElementById('editor').classList.contains('open')) refreshAllPreviews();
+  }));
+}
+
+async function saveSettings(){ await Store.setSettings(settings); }
+
+function bindRate(id,key){
+  const el=document.getElementById(id);
+  el.addEventListener('input',async()=>{
+    settings[key]=num(el.value);
+    await saveSettings();
+    renderCatalog();
+    if(document.getElementById('editor').classList.contains('open')) refreshAllPreviews();
+  });
+}
+
+/* ===== EDYCJA MODELU ===== */
+function openEditor(id){
+  editId=id||null;
+  const src=id?modelsArr.find(x=>x.id===id):null;
+  draft = src ? JSON.parse(JSON.stringify(src)) : {id:null,name:'',photo:null,zysk:0,wys:0,rek:0,prow:6.5,fee:0,duty:0,widths:[]};
+  document.getElementById('ed-title').textContent=src?(src.name||'Model'):'Nowy model';
+  document.getElementById('ed-delete').style.display=src?'flex':'none';
+  document.getElementById('ed-save').textContent=src?'Zapisz zmiany':'Zapisz model';
+  document.getElementById('f-name').value=draft.name||'';
+  document.getElementById('f-zysk').value=draft.zysk||0;
+  document.getElementById('f-wys').value=draft.wys||0;
+  document.getElementById('f-rek').value=draft.rek||0;
+  document.getElementById('f-prow').value=draft.prow!=null?draft.prow:6.5;
+  document.getElementById('f-fee').value=draft.fee||0;
+  document.getElementById('f-duty').value=draft.duty||0;
+  editPhoto=draft.photo||null; renderPhoto();
+  renderWidths();
+  const ov=document.getElementById('editor'); ov.classList.add('open'); ov.querySelector('.ed-body').scrollTop=0;
+}
+
+function closeEditor(){document.getElementById('editor').classList.remove('open');editId=null;draft=null;editPhoto=null;}
+
+function syncDraftSale(){
+  draft.zysk=num(document.getElementById('f-zysk').value);
+  draft.wys=num(document.getElementById('f-wys').value);
+  draft.rek=num(document.getElementById('f-rek').value);
+  draft.prow=num(document.getElementById('f-prow').value);
+  draft.fee=num(document.getElementById('f-fee').value);
+  draft.duty=num(document.getElementById('f-duty').value);
+}
+['f-zysk','f-wys','f-rek','f-prow','f-fee','f-duty'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{syncDraftSale();refreshAllPreviews();}));
+
+function renderWidths(){
+  const wrap=document.getElementById('widths'); wrap.innerHTML='';
+  draft.widths.forEach((w,idx)=> wrap.appendChild(buildWidthCard(w,idx)) );
+}
+
+function buildWidthCard(w,idx){
+  const el=document.createElement('div'); el.className='wcard';
+  const matInputs=settings.materials.map((m,i)=>`<div class="mrow"><div><div class="mname">${esc(m.name)}</div><div class="munit">${fPLN(m.price)} / ${esc(m.unit)}</div></div><div class="qty-in ipx"><input type="number" inputmode="decimal" step="0.1" value="${(w.qtys&&w.qtys[i])||0}" data-q="${i}"><span class="suf">${esc(m.unit)}</span></div></div>`).join('');
+  el.innerHTML=`
+    <div class="wcard-top">
+      <div><label>Szerokość</label><div class="ipx"><input class="w-width" type="number" inputmode="numeric" value="${w.width||''}" placeholder="60"><span class="suf">cm</span></div></div>
+      <div><label>Koszt wytworzenia</label><div class="ipx"><input class="w-cost" type="number" inputmode="decimal" value="${w.mode==='recipe'?'':(w.cost||'')}" ${w.mode==='recipe'?'disabled':''} placeholder="0"><span class="suf">zł</span></div></div>
+      <button class="fxbtn ${w.mode==='recipe'?'on':''}" title="Policz z materiałów">fx</button>
+    </div>
+    <div class="recipe ${w.mode==='recipe'?'show':''}">
+      <div class="rt">Ilości materiałów + robocizna (koszt liczy się sam)</div>
+      ${matInputs}
+      <div class="row3" style="margin-top:8px">
+        <div><label>Robocizna</label><div class="ipx"><input class="w-labor" type="number" inputmode="decimal" step="0.5" value="${w.laborH||0}"><span class="suf">h</span></div></div>
+        <div><label>Pakowanie</label><div class="ipx"><input class="w-pak" type="number" inputmode="decimal" value="${w.pak||0}"><span class="suf">zł</span></div></div>
+        <div><label>Inne</label><div class="ipx"><input class="w-inne" type="number" inputmode="decimal" value="${w.inne||0}"><span class="suf">zł</span></div></div>
+      </div>
+    </div>
+    <div class="wprev">
+      <span>koszt <b class="pv-cost">—</b></span>
+      <span class="eu">EU <b class="pv-eu">—</b></span>
+      <span class="us">USA <b class="pv-us">—</b></span>
+      <button class="delw" title="Usuń szerokość"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+    </div>`;
+  const widthIn=el.querySelector('.w-width');
+  const costIn=el.querySelector('.w-cost');
+  const fx=el.querySelector('.fxbtn');
+  const recipe=el.querySelector('.recipe');
+  widthIn.addEventListener('input',()=>{w.width=num(widthIn.value);updatePrev(el,w);});
+  costIn.addEventListener('input',()=>{w.cost=num(costIn.value);updatePrev(el,w);});
+  fx.addEventListener('click',()=>{
+    if(w.mode==='recipe'){ w.mode='manual'; w.cost=Math.round(widthCost(w)*100)/100; costIn.value=w.cost||''; costIn.disabled=false; fx.classList.remove('on'); recipe.classList.remove('show'); }
+    else { w.mode='recipe'; if(!w.qtys||w.qtys.length!==settings.materials.length) w.qtys=settings.materials.map((_,i)=>(w.qtys&&w.qtys[i])||0); costIn.disabled=true; costIn.value=''; fx.classList.add('on'); recipe.classList.add('show'); }
+    updatePrev(el,w);
+  });
+  recipe.querySelectorAll('input[data-q]').forEach(inp=>inp.addEventListener('input',()=>{ if(!w.qtys)w.qtys=[]; w.qtys[+inp.dataset.q]=num(inp.value); updatePrev(el,w); }));
+  el.querySelector('.w-labor').addEventListener('input',e=>{w.laborH=num(e.target.value);updatePrev(el,w);});
+  el.querySelector('.w-pak').addEventListener('input',e=>{w.pak=num(e.target.value);updatePrev(el,w);});
+  el.querySelector('.w-inne').addEventListener('input',e=>{w.inne=num(e.target.value);updatePrev(el,w);});
+  el.querySelector('.delw').addEventListener('click',()=>{ draft.widths.splice(idx,1); renderWidths(); });
+  updatePrev(el,w);
+  return el;
+}
+
+function updatePrev(el,w){
+  syncDraftSale();
+  const r=priceOf(draft,w);
+  el.querySelector('.pv-cost').textContent=fPLN(r.cost);
+  el.querySelector('.pv-eu').textContent=r.ok?fEUR2(r.eur):'—';
+  el.querySelector('.pv-us').textContent=r.ok?fUSD2(r.usWithDuty):'—';
+}
+
+function refreshAllPreviews(){
+  const wrap=document.getElementById('widths');
+  [...wrap.children].forEach((el,i)=>{ if(draft.widths[i]) updatePrev(el,draft.widths[i]); });
+}
+
+document.getElementById('btn-add-width').addEventListener('click',()=>{
+  const last=draft.widths[draft.widths.length-1];
+  const nw={id:genId(),width:last?last.width+10:60,mode:'manual',cost:last&&last.mode==='manual'?last.cost:Math.round((last?widthCost(last):0)*100)/100,qtys:settings.materials.map(()=>0),laborH:0,pak:0,inne:0};
+  draft.widths.push(nw); renderWidths();
+  const wrap=document.getElementById('widths'); wrap.lastChild.scrollIntoView({behavior:'smooth',block:'center'});
+});
+
+/* KOMPRESJA ZDJĘĆ */
+function renderPhoto(){
+  const wrap=document.getElementById('photo-wrap'),img=document.getElementById('photo-img'),cta=document.getElementById('photo-cta'),ch=document.getElementById('photo-change');
+  if(editPhoto){img.src=editPhoto;img.style.display='block';cta.style.display='none';ch.style.display='flex';wrap.classList.add('has');}
+  else{img.style.display='none';cta.style.display='block';ch.style.display='none';wrap.classList.remove('has');}
+}
+document.getElementById('photo-wrap').addEventListener('click',e=>{if(e.target.id==='photo-change')return;document.getElementById('photo-input').click();});
+document.getElementById('photo-change').addEventListener('click',e=>{e.stopPropagation();document.getElementById('photo-input').click();});
+document.getElementById('photo-input').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{editPhoto=await compressImage(f);renderPhoto();}catch(err){toast('Nie udało się wczytać zdjęcia');}e.target.value='';});
+function compressImage(file,maxDim=1000,q=0.72){return new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{let{width:w,height:h}=im;if(w>h&&w>maxDim){h=Math.round(h*maxDim/w);w=maxDim;}else if(h>=w&&h>maxDim){w=Math.round(w*maxDim/h);h=maxDim;}const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);res(cv.toDataURL('image/jpeg',q));};im.onerror=rej;im.src=rd.result;};rd.onerror=rej;rd.readAsDataURL(file);});}
+
+/* OPERACJE BAZODANOWE W EDYTORZE */
+document.getElementById('ed-save').addEventListener('click',async()=>{
+  syncDraftSale();
+  draft.name=document.getElementById('f-name').value.trim();
+  draft.photo=editPhoto;
+  draft.widths=draft.widths.filter(w=>num(w.width)>0);
+  if(!draft.name){toast('Wpisz nazwę modelu');return;}
+  if(!draft.id) draft.id=genId();
+  
+  await Store.setModel(draft.id, draft);
+  
+  const exists=modelsArr.some(m=>m.id===draft.id);
+  if(exists) modelsArr=modelsArr.map(m=>m.id===draft.id?draft:m); else modelsArr.push(draft);
+  
+  toast(editId?'Zapisano w chmurze':'Dodano model do chmury'); closeEditor(); renderCatalog(); switchView('catalog');
+});
+
+document.getElementById('ed-delete').addEventListener('click',async()=>{
+  if(!editId)return; if(!confirm('Usunąć ten model bezpowrotnie dla całej firmy?'))return;
+  await Store.deleteModel(editId); 
+  modelsArr=modelsArr.filter(m=>m.id!==editId);
+  toast('Usunięto model z chmury'); closeEditor(); renderCatalog();
+});
+
+document.getElementById('ed-close').addEventListener('click',closeEditor);
+document.getElementById('btn-new').addEventListener('click',()=>openEditor(null));
+
+/* INTEGRACJA INTERFEJSU */
+window.switchView = function(v){
+  document.getElementById('view-catalog').classList.toggle('active',v==='catalog');
+  document.getElementById('view-settings').classList.toggle('active',v==='settings');
+  document.getElementById('nav-catalog').classList.toggle('active',v==='catalog');
+  document.getElementById('nav-settings').classList.toggle('active',v==='settings');
+  window.scrollTo(0,0);
+}
+
+let toastT; function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000);}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+bindRate('rate-eur','eurRate');bindRate('rate-usd','usdRate');bindRate('rate-labor','laborRate');
+
+/* ===== REJESTRACJA MANIFESTU PWA ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGUgPT4gZSk7')
+      .catch(err => console.log('Błąd PWA Service Workera', err));
+  });
+}
+
+// Start systemu
+init();
+</script>
+</body>
+</html>

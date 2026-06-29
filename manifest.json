@@ -1,0 +1,16 @@
+{
+  "short_name": "TukuTuk",
+  "name": "TukuTuk - Cennik Regałów",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/4043/4043240.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#FAF6EF",
+  "theme_color": "#2E5A3D",
+  "display": "standalone",
+  "orientation": "portrait"
+}
