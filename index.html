@@ -8,10 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 
-<!-- Bezpośredni manifest i ikony aplikacji rozpoznawane przez Chrome (Android) oraz Safari (iOS) -->
 <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icon.png">
 <link rel="manifest" href="manifest.json">
+
 <style>
   :root{
     --bg:#FAF6EF; --surface:#FFFFFF; --sand:#F2E9DA; --sand-2:#EFE4D1;
@@ -157,7 +157,6 @@
     <div class="brandtext"><h1>TukuTuk</h1><p>Cennik regałów (Cloud)</p></div>
   </div>
 
-  <!-- ===== KATALOG ===== -->
   <section id="view-catalog" class="view active">
     <p class="lead">Wybierz model — zobaczysz szerokości i gotowe ceny: <b style="color:var(--oak-deep)">Europa (€)</b> oraz <b style="color:var(--us-blue)">USA z cłem ($)</b>.</p>
     <button class="btn btn-primary addbtn" id="btn-new">
@@ -167,7 +166,6 @@
     <div class="cat" id="cat"></div>
   </section>
 
-  <!-- ===== USTAWIENIA ===== -->
   <section id="view-settings" class="view">
     <div class="panel">
       <h2 class="panel-h"><span class="dot"></span>Kursy walut</h2>
@@ -198,7 +196,6 @@
   </nav>
 </div>
 
-<!-- ===== MODEL EDITOR ===== -->
 <div class="overlay" id="editor">
   <div class="ed-top">
     <button class="iconbtn" id="ed-close" aria-label="Zamknij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -252,12 +249,10 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- INTEGRACJA CHMURY GOOGLE FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Twoje dokładne i unikalne klucze wyciągnięte z Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyCqbeju9I2NSScP0727zlHc5GqGmG17KHA",
   authDomain: "tukutuk-cennik.firebaseapp.com",
@@ -268,11 +263,9 @@ const firebaseConfig = {
   measurementId: "G-R4ZCF82DCF"
 };
 
-// Inicjalizacja bazy
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===== SYSTEM OPERACJI NA BAZIE (STORE) ===== */
 const Store = {
   async getSettings() {
     const docRef = doc(db, "config", "settings");
@@ -298,7 +291,6 @@ const Store = {
   }
 };
 
-/* ===== DOMYŚLNE MATERIAŁY ===== */
 const DEFAULT_MATERIALS=[
   {name:'Płyta / sklejka',unit:'m²',price:80},{name:'Drewno lite / listwy',unit:'mb',price:25},
   {name:'Plecy (HDF)',unit:'m²',price:30},{name:'Wkręty, okucia',unit:'szt',price:0.5},
@@ -306,12 +298,10 @@ const DEFAULT_MATERIALS=[
   {name:'Papier ścierny',unit:'szt',price:3},{name:'Inne',unit:'szt',price:0}
 ];
 
-/* ===== STAN APLIKACJI ===== */
 let settings={ eurRate:4.30, usdRate:4.00, laborRate:40, materials:DEFAULT_MATERIALS.map(m=>({...m})) };
 let modelsArr=[];      
 let editId=null, draft=null, editPhoto=null;
 
-/* ===== FORMATOWANIE WALUT ===== */
 const fPLN=n=>(isFinite(n)?n:0).toLocaleString('pl-PL',{style:'currency',currency:'PLN',maximumFractionDigits:2});
 const fEUR=n=>(isFinite(n)?n:0).toLocaleString('pl-PL',{style:'currency',currency:'EUR',maximumFractionDigits:0});
 const fEUR2=n=>(isFinite(n)?n:0).toLocaleString('pl-PL',{style:'currency',currency:'EUR',maximumFractionDigits:2});
@@ -319,7 +309,6 @@ const fUSD=n=>'$'+(isFinite(n)?n:0).toLocaleString('en-US',{maximumFractionDigit
 const fUSD2=n=>'$'+(isFinite(n)?n:0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0;};
 
-/* ===== MATEMATYKA CENNIKA ===== */
 function widthCost(w){
   if(w.mode==='recipe'){
     let c=0; const M=settings.materials;
@@ -341,7 +330,6 @@ function priceOf(model,w){
   return {cost,price,eur,usd,duty,usWithDuty,ok:true};
 }
 
-/* ===== INICJALIZACJA Z CHMURY ===== */
 async function init(){
   try {
     const cloudSettings = await Store.getSettings();
@@ -350,23 +338,19 @@ async function init(){
     } else {
       await Store.setSettings(settings);
     }
-    
     modelsArr = await Store.getAllModels();
-    
     if(modelsArr.length===0){
       await seed();
       modelsArr = await Store.getAllModels();
     }
-    
     renderCennik(); 
     renderCatalog();
-    
     document.getElementById('rate-eur').value=settings.eurRate;
     document.getElementById('rate-usd').value=settings.usdRate;
     document.getElementById('rate-labor').value=settings.laborRate;
   } catch (e) {
     console.error(e);
-    toast("Błąd synchronizacji! Sprawdź połączenie.");
+    toast("Błąd synchronizacji!");
   }
 }
 
@@ -379,7 +363,6 @@ async function seed(){
   await Store.setModel(m1.id, m1);
 }
 
-/* ===== GENEROWANIE WIDOKÓW (DOM) ===== */
 function renderCatalog(){
   const wrap=document.getElementById('cat');
   if(modelsArr.length===0){
@@ -396,7 +379,7 @@ function renderCatalog(){
         <div class="eu">${r.ok?fEUR(r.eur):'—'}<span class="z">${r.ok?fPLN(r.price):''}</span></div>
         <div class="us">${r.ok?fUSD(r.usWithDuty):'—'}<span class="z">${r.ok?('cło '+(m.duty||0)+'%'):''}</span></div>
       </div>`;
-    }).join('') : `<div class="ptab-empty">Brak szerokości — dodaj je w edycji.</div>`;
+    }).join('') : `<div class="ptab-empty">Brak szerokości.</div>`;
     return `<div class="cat-card" id="card-${m.id}">
       <div class="cat-head" id="head-${m.id}">
         ${thumb}
@@ -445,7 +428,6 @@ function bindRate(id,key){
   });
 }
 
-/* ===== EDYCJA MODELU ===== */
 function openEditor(id){
   editId=id||null;
   const src=id?modelsArr.find(x=>x.id===id):null;
@@ -492,7 +474,7 @@ function buildWidthCard(w,idx){
       <button class="fxbtn ${w.mode==='recipe'?'on':''}" title="Policz z materiałów">fx</button>
     </div>
     <div class="recipe ${w.mode==='recipe'?'show':''}">
-      <div class="rt">Ilości materiałów + robocizna (koszt liczy się sam)</div>
+      <div class="rt">Ilości materiałów + robocizna</div>
       ${matInputs}
       <div class="row3" style="margin-top:8px">
         <div><label>Robocizna</label><div class="ipx"><input class="w-labor" type="number" inputmode="decimal" step="0.5" value="${w.laborH||0}"><span class="suf">h</span></div></div>
@@ -546,7 +528,6 @@ document.getElementById('btn-add-width').addEventListener('click',()=>{
   const wrap=document.getElementById('widths'); wrap.lastChild.scrollIntoView({behavior:'smooth',block:'center'});
 });
 
-/* KOMPRESJA ZDJĘĆ */
 function renderPhoto(){
   const wrap=document.getElementById('photo-wrap'),img=document.getElementById('photo-img'),cta=document.getElementById('photo-cta'),ch=document.getElementById('photo-change');
   if(editPhoto){img.src=editPhoto;img.style.display='block';cta.style.display='none';ch.style.display='flex';wrap.classList.add('has');}
@@ -557,7 +538,6 @@ document.getElementById('photo-change').addEventListener('click',e=>{e.stopPropa
 document.getElementById('photo-input').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{editPhoto=await compressImage(f);renderPhoto();}catch(err){toast('Nie udało się wczytać zdjęcia');}e.target.value='';});
 function compressImage(file,maxDim=1000,q=0.72){return new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{let{width:w,height:h}=im;if(w>h&&w>maxDim){h=Math.round(h*maxDim/w);w=maxDim;}else if(h>=w&&h>maxDim){w=Math.round(w*maxDim/h);h=maxDim;}const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);res(cv.toDataURL('image/jpeg',q));};im.onerror=rej;im.src=rd.result;};rd.onerror=rej;rd.readAsDataURL(file);});}
 
-/* OPERACJE BAZODANOWE W EDYTORZE */
 document.getElementById('ed-save').addEventListener('click',async()=>{
   syncDraftSale();
   draft.name=document.getElementById('f-name').value.trim();
@@ -565,12 +545,9 @@ document.getElementById('ed-save').addEventListener('click',async()=>{
   draft.widths=draft.widths.filter(w=>num(w.width)>0);
   if(!draft.name){toast('Wpisz nazwę modelu');return;}
   if(!draft.id) draft.id=genId();
-  
   await Store.setModel(draft.id, draft);
-  
   const exists=modelsArr.some(m=>m.id===draft.id);
   if(exists) modelsArr=modelsArr.map(m=>m.id===draft.id?draft:m); else modelsArr.push(draft);
-  
   toast(editId?'Zapisano w chmurze':'Dodano model do chmury'); closeEditor(); renderCatalog(); switchView('catalog');
 });
 
@@ -584,7 +561,6 @@ document.getElementById('ed-delete').addEventListener('click',async()=>{
 document.getElementById('ed-close').addEventListener('click',closeEditor);
 document.getElementById('btn-new').addEventListener('click',()=>openEditor(null));
 
-/* INTEGRACJA INTERFEJSU */
 window.switchView = function(v){
   document.getElementById('view-catalog').classList.toggle('active',v==='catalog');
   document.getElementById('view-settings').classList.toggle('active',v==='settings');
@@ -598,15 +574,24 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 
 bindRate('rate-eur','eurRate');bindRate('rate-usd','usdRate');bindRate('rate-labor','laborRate');
 
-/* ===== REJESTRACJA SERVICE WORKERA PWA ===== */
+/* ===== REJESTRACJA PEŁNEGO SERVICE WORKERA PWA ===== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGUgPT4gZSk7')
-      .catch(err => console.log('Błąd PWA Service Workera', err));
+    // Rejestrujemy w pełni zgodny z polityką Google, zapętlony Service Worker
+    const swCode = `
+      self.addEventListener('install', e => self.skipWaiting());
+      self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+      self.addEventListener('fetch', e => { e.respondWith(fetch(e.request).catch(() => new Response('Offline'))); });
+    `;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    
+    navigator.serviceWorker.register(swUrl)
+      .then(() => console.log('PWA Service Worker Aktywny i Poprawny'))
+      .catch(err => console.error('Błąd SW:', err));
   });
 }
 
-// Start systemu
 init();
 </script>
 </body>
