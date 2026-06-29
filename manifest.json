@@ -3,12 +3,19 @@
   "name": "TukuTuk - Cennik Regałów",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/4043/4043240.png",
+      "src": "icon.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/tukutuk-cennik/",
   "background_color": "#FAF6EF",
   "theme_color": "#2E5A3D",
   "display": "standalone",
